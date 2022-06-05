@@ -3,7 +3,6 @@ from utils import read, write
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import jwt
-import datetime
 from setup import SECRET_KEY
 from utils import token_required
 
