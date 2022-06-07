@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from utils import read, write
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
+import re
 import jwt
 from setup import SECRET_KEY
 from utils import token_required
@@ -15,7 +16,8 @@ def add_user():
     password = entries['password']
     confirm_pass = entries['confirm_password']
 
-    if password == confirm_pass :
+    regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+    if re.fullmatch(regex,email) and password == confirm_pass and len(password) >= 6:
         
         hashed_pass = generate_password_hash(password, method='sha256')
         public_id = str(uuid.uuid4())
@@ -23,9 +25,9 @@ def add_user():
         if write("""
         INSERT INTO users (public_id, email, password) VALUES (%s, %s, %s)
     """, (public_id, email, hashed_pass)):
-            return jsonify('201')
+            return 'New user added successfully !'
         else:
-            return jsonify({'test':read("""SELECT * FROM users""")}), 402
+            return jsonify('401')
     else:
         return jsonify('400')    
 
@@ -43,8 +45,8 @@ def login():
     if check_password_hash(current_user[0]['password'], current_pass):
 
         token = jwt.encode({'public_id':current_user[0]['public_id']}, SECRET_KEY, "HS256")
-        return jsonify({'token':token})
-    return jsonify({'error'})
+        return jsonify({'error' : False, 'message' : 'success','token':token})
+    return jsonify({'error' : True, 'message': 'user invalid'})
 
 
 @auth.route('/test')

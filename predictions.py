@@ -23,6 +23,7 @@ def download_file(filename):
 
 # /uploads endpoint upload audio file to GCS
 @pred.route('/uploads', methods=['POST'])
+@token_required
 def upload_file():
     if request.files:
 
@@ -41,9 +42,11 @@ def upload_file():
             return jsonify('error')
     return jsonify('error'), 401 
 
-# /<filename> run from GCS trigger
+# /<filename> trugger by GCS
 # masih development
+# for running prediction
 @pred.route('/<filename>')
+@token_required
 def tester2(filename):
     download_file(filename)
     os.remove('/tmp/'+filename)
