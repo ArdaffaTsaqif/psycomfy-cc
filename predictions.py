@@ -8,7 +8,7 @@ import re
 import os
 from google.cloud import storage
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'psycomfyFireStorage.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'service-key-googlecloud.json'
 
 pred = Blueprint('pred',__name__)
 
@@ -50,4 +50,4 @@ def upload_file():
 def tester2(filename):
     download_file(filename)
     os.remove('/tmp/'+filename)
-    return 'success'
+    return jsonify({'message' : 'success'})

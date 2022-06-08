@@ -25,7 +25,7 @@ def add_user():
         if write("""
         INSERT INTO users (public_id, email, password) VALUES (%s, %s, %s)
     """, (public_id, email, hashed_pass)):
-            return 'New user added successfully !'
+            return jsonify({'message':'New user added successfully !'})
         else:
             return jsonify('401')
     else:
@@ -45,7 +45,7 @@ def login():
     if check_password_hash(current_user[0]['password'], current_pass):
 
         token = jwt.encode({'public_id':current_user[0]['public_id']}, SECRET_KEY, "HS256")
-        return jsonify({'error' : False, 'message' : 'success','token':token})
+        return jsonify({'error' : False, 'message' : 'success','user':{'public_id' : current_user[0]['public_id'], 'email' : current_user[0]['email'], 'token' : token}})
     return jsonify({'error' : True, 'message': 'user invalid'})
 
 

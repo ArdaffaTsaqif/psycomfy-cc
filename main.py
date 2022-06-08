@@ -8,10 +8,10 @@ app = Flask(__name__)
 
 app.config["MYSQL_USER"] = MYSQL_USER
 app.config["MYSQL_PASSWORD"] = MYSQL_PASSWORD
-app.config["MYSQL_DB"] = "flaskapp"
+app.config["MYSQL_DB"] = MYSQL_DB
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
-#app.config["MYSQL_UNIX_SOCKET"] = MYSQL_UNIX_SOCKET
-#connect 
+app.config["MYSQL_UNIX_SOCKET"] = MYSQL_UNIX_SOCKET
+
 
 
 db = MySQL(app)
