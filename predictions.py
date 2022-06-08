@@ -1,12 +1,16 @@
 from flask import Blueprint, jsonify, request
-from utils import write, read, token_required
-from werkzeug.utils import secure_filename
-#import tensorflow as tf
+#from utils import write, read, token_required
+#from werkzeug.utils import secure_filename
+import matplotlib.pyplot as plt
+import tensorflow as tf
+import numpy as np
+from PIL import Image
+import io, cv2, numpy as np
+from io import BytesIO
 import librosa
-import json
-import re
 import os
 from google.cloud import storage
+
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'service-key-googlecloud.json'
 
@@ -22,7 +26,7 @@ def download_file(filename):
     blob = blob.download_to_filename(temp_folder + filename)
 
 # /uploads endpoint upload audio file to GCS
-@pred.route('/uploads', methods=['POST'])
+""" @pred.route('/uploads', methods=['POST'])
 @token_required
 def upload_file():
     if request.files:
@@ -40,14 +44,40 @@ def upload_file():
             return jsonify('success')
         except:
             return jsonify('error')
-    return jsonify('error'), 401 
+    return jsonify('error'), 401  """
 
-# /<filename> trugger by GCS
-# masih development
-# for running prediction
-@pred.route('/<filename>')
-@token_required
-def tester2(filename):
+def loaded_model():
+    model = tf.keras.models.load_model('predictive_model_v_8.h5')
+    return model
+
+#predict function
+def predict(filename):
     download_file(filename)
+    y, sr = librosa.load('/tmp/' + filename)
+    librosa.feature.melspectrogram(y=y, sr=sr)
+    #S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+    #fig, ax = plt.subplots()
+    #S_dB = librosa.power_to_db(S, ref=np.max)
+    #img = librosa.display.specshow(S_dB)
+    # ax.set(title='Log Mel-frequency spectrogram')
+    b = BytesIO()
+    plt.savefig(b, format='jpg')  #save picture in local memory
+    #spectogram to numpy
+    b.seek(0)
+    file_bytes = np.asarray(bytearray(b.read()), dtype=np.uint8)
+    image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    image = cv2.resize(image, (512, 512))
+    image = image.astype("float") / 255.0
+    image = tf.keras.preprocessing.image.img_to_array(image)
+    image = np.expand_dims(image, axis=0)
+    hasil = image
+    model = loaded_model()
+    y_pred = np.argmax(model.predict(hasil), axis=1)
     os.remove('/tmp/'+filename)
-    return jsonify({'message' : 'success'})
+    if str(y_pred[0]) == "0":
+       label_nama = "Depresi"
+    elif str(y_pred[0]) == "1":
+       label_nama = "Normal"
+    print(label_nama)
+
+predict('3.wav')
