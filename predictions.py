@@ -1,3 +1,4 @@
+from asyncore import write
 from flask import Blueprint, jsonify, request
 #from utils import write, read, token_required
 #from werkzeug.utils import secure_filename
@@ -9,6 +10,7 @@ import io, cv2, numpy as np
 from io import BytesIO
 import librosa
 import os
+import re
 from google.cloud import storage
 
 
@@ -18,6 +20,7 @@ pred = Blueprint('pred',__name__)
 
 bucket_name = 'psycomfy-c22-ps203-capstone'
 temp_folder = '/tmp/'
+base_url = ''
 
 def download_file(filename):
     storage_client = storage.Client()
@@ -73,11 +76,24 @@ def predict(filename):
     hasil = image
     model = loaded_model()
     y_pred = np.argmax(model.predict(hasil), axis=1)
+    x_accuracy = model.predict(hasil)[0]
+    output = max(x_accuracy)
+    percentage = str(2*(output - 0.5)*100) + " %"
     os.remove('/tmp/'+filename)
     if str(y_pred[0]) == "0":
        label_nama = "Depresi"
+       accuracy = percentage
     elif str(y_pred[0]) == "1":
        label_nama = "Normal"
-    print(label_nama)
+       accuracy = '-'
+    return label_nama, accuracy
 
-predict('3.wav')
+@pred.route('/<filename>')
+def start_prediction(filename):
+    try:
+        img = predict(filename)
+        pred = {'status_user' : img[0], "status_running" : "Success", "level" : img[1]}, 201
+        return pred
+    except:
+        pred = {'status_user' : '-', 'status_running' : "Error"}, 400
+    return jsonify({'error':True, 'message':'Files input invalid'})
