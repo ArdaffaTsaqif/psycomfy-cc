@@ -1,16 +1,17 @@
 from asyncore import write
 from flask import Blueprint, jsonify, request
-#from utils import write, read, token_required
-#from werkzeug.utils import secure_filename
+from utils import write, read, token_required
+from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import io, cv2, numpy as np
+import io, numpy as np
 from io import BytesIO
 import librosa
 import os
 import re
+import cv2
 from google.cloud import storage
 
 
@@ -29,7 +30,7 @@ def download_file(filename):
     blob = blob.download_to_filename(temp_folder + filename)
 
 # /uploads endpoint upload audio file to GCS
-""" @pred.route('/uploads', methods=['POST'])
+@pred.route('/uploads', methods=['POST'])
 @token_required
 def upload_file():
     if request.files:
@@ -47,7 +48,7 @@ def upload_file():
             return jsonify('success')
         except:
             return jsonify('error')
-    return jsonify('error'), 401  """
+    return jsonify('error'), 401 
 
 def loaded_model():
     model = tf.keras.models.load_model('predictive_model_v_8.h5')
