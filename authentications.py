@@ -49,7 +49,3 @@ def login():
     return jsonify({'error' : True, 'message': 'user invalid'})
 
 
-@auth.route('/test')
-@token_required
-def test1():
-    return 'success'

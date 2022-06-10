@@ -21,14 +21,16 @@ env: flex
 # https://cloud.google.com/appengine/docs/flexible/python/configuring-your-app-with-app-yaml
 
 # # Enable a Unix domain socket
-beta_settings:
-  cloud_sql_instances: /cloudsql/c22-ps203-capstone-352016:asia-southeast2:psycomfy-demo
+
 
 env_variables:
-  CLOUD_SQL_USERNAME: root
-  CLOUD_SQL_PASSWORD: ardaffa123
-  CLOUD_SQL_DATABASE_NAME: flaskapp
-  CLOUD_SQL_CONNECTION_NAME: c22-ps203-capstone-352016:asia-southeast2:psycomfy-demo
+  INSTANCE_UNIX_SOCKET: /cloudsql/c22-ps203-capstone-352016:asia-southeast2:psycomfy-demo
+  DB_USER: root
+  DB_PASS: ardaffa123
+  DB_NAME: flaskapp
+
+beta_settings:
+  cloud_sql_instances: c22-ps203-capstone-352016:asia-southeast2:psycomfy-demo
   
 manual_scaling:
   instances: 1

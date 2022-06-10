@@ -1,4 +1,5 @@
 from asyncore import write
+from crypt import methods
 from flask import Blueprint, jsonify, request
 from utils import write, read, token_required
 from werkzeug.utils import secure_filename
@@ -13,6 +14,8 @@ import os
 import re
 import cv2
 from google.cloud import storage
+from datetime import datetime
+from time import gmtime, strftime
 
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'service-key-googlecloud.json'
@@ -83,16 +86,32 @@ def predict(filename):
        accuracy = percentage
     elif str(y_pred[0]) == "1":
        label_nama = "Normal"
-       accuracy = '-'
+       accuracy = ''
     return label_nama, accuracy
 
 @pred.route('/<filename>', methods=['POST'])
 def start_prediction(filename):
     try:
+        report_id = re.sub(r"\.\w*","",filename) + '-' + str(datetime.today().strftime('%Y-%m-%d-%H:%M:%S'))
         img = predict(filename)
         audio_url = 'https://storage.googleapis.com/c22-ps203-capstone-352016.appspot.com/' + filename
         pred = {'status_user' : img[0], "audio_url": audio_url ,"status_running" : "Success", "level" : img[1]}, 201
-        return pred
+        if write("""INSERT INTO reports (report_id, audio_url, result) VALUES (%s, %s, %s)""", (report_id, audio_url, img[0] + ' ' + img[1] )):
+            return pred
+        return 'db error'
     except:
         pred = {'status_user' : '-', 'status_running' : "Error"}, 400
-    return jsonify({'error':True, 'message':'Files input invalid'})
+    return pred
+
+@pred.route("/report/<doc_id>", methods=['GET'])
+def report_card(doc_id):
+    try:
+        choosen_id = str(doc_id)
+        data  = read(
+        """SELECT * FROM reports WHERE report_id=%s"""
+        ,(choosen_id,)
+    )
+        return jsonify(data[0]), 200
+    except Exception as e:
+        return f"an error occur {e}"
+
