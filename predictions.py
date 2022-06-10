@@ -33,6 +33,7 @@ def download_file(filename):
 
 # /uploads endpoint upload audio file to GCS
 @pred.route('/api/uploads', methods=['POST'])
+@token_required
 def upload_file():
     if request.files:
         file = request.files['file']
@@ -89,12 +90,12 @@ def predict(filename):
        accuracy = ''
     return label_nama, accuracy
 
-@pred.route('/<filename>', methods=['POST'])
+@pred.route('/<filename>', methods=['GET'])
 def start_prediction(filename):
     try:
         report_id = re.sub(r"\.\w*","",filename) + '-' + str(datetime.today().strftime('%Y-%m-%d-%H:%M:%S'))
         img = predict(filename)
-        audio_url = 'https://storage.googleapis.com/c22-ps203-capstone-352016.appspot.com/' + filename
+        audio_url = 'https://storage.googleapis.com/psycomfy-c22-ps203-capstone/' + filename
         pred = {'status_user' : img[0], "audio_url": audio_url ,"status_running" : "Success", "level" : img[1]}, 201
         if write("""INSERT INTO reports (report_id, audio_url, result) VALUES (%s, %s, %s)""", (report_id, audio_url, img[0] + ' ' + img[1] )):
             return pred
@@ -104,6 +105,7 @@ def start_prediction(filename):
     return pred
 
 @pred.route("/report/<doc_id>", methods=['GET'])
+@token_required
 def report_card(doc_id):
     try:
         choosen_id = str(doc_id)
