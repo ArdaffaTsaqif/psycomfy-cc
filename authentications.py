@@ -24,10 +24,10 @@ def add_user():
 
         if write("""
         INSERT INTO users (public_id, email, password) VALUES (%s, %s, %s)
-    """, (public_id, email, hashed_pass)):
+    """, (public_id, email, hashed_pass,)):
             return jsonify({'message':'New user added successfully !'})
         else:
-            return jsonify('401')
+            return jsonify('fail') , 401
     else:
         return jsonify('400')    
 

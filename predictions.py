@@ -21,7 +21,6 @@ pred = Blueprint('pred',__name__)
 
 bucket_name = 'psycomfy-c22-ps203-capstone'
 temp_folder = '/tmp/'
-base_url = ''
 
 def download_file(filename):
     storage_client = storage.Client()
@@ -30,11 +29,9 @@ def download_file(filename):
     blob = blob.download_to_filename(temp_folder + filename)
 
 # /uploads endpoint upload audio file to GCS
-@pred.route('/uploads', methods=['POST'])
-@token_required
+@pred.route('/api/uploads', methods=['POST'])
 def upload_file():
     if request.files:
-
         file = request.files['file']
         filename = secure_filename(file.filename)
         file.save(os.path.join('/tmp/', filename))
@@ -89,11 +86,12 @@ def predict(filename):
        accuracy = '-'
     return label_nama, accuracy
 
-@pred.route('/<filename>')
+@pred.route('/<filename>', methods=['POST'])
 def start_prediction(filename):
     try:
         img = predict(filename)
-        pred = {'status_user' : img[0], "status_running" : "Success", "level" : img[1]}, 201
+        audio_url = 'https://storage.googleapis.com/c22-ps203-capstone-352016.appspot.com/' + filename
+        pred = {'status_user' : img[0], "audio_url": audio_url ,"status_running" : "Success", "level" : img[1]}, 201
         return pred
     except:
         pred = {'status_user' : '-', 'status_running' : "Error"}, 400

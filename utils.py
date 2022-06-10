@@ -51,4 +51,3 @@ def write(query, params):
     except MySQLdb._exceptions.IntegrityError:
         cursor.close()
         return False
-
