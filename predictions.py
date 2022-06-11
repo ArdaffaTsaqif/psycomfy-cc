@@ -1,5 +1,3 @@
-from asyncore import write
-from crypt import methods
 from flask import Blueprint, jsonify, request
 from utils import write, read, token_required
 from werkzeug.utils import secure_filename
@@ -15,7 +13,7 @@ import re
 import cv2
 from google.cloud import storage
 from datetime import datetime
-from time import gmtime, strftime
+
 
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'service-key-googlecloud.json'
@@ -46,10 +44,10 @@ def upload_file():
             blob = bucket.blob(filename)
             blob = blob.upload_from_filename('/tmp/' + filename)
             os.remove('/tmp/' + filename)
-            return jsonify('success')
+            return {'error' : False, 'message' : 'File uploaded successfully'}, 200
         except:
-            return jsonify('error')
-    return jsonify('error'), 401 
+            return {'error' : True, 'message' : 'Error upload file'}, 400
+    return {'error' : True, 'message' : 'Request file not existed'}, 400
 
 def loaded_model():
     model = tf.keras.models.load_model('predictive_model_v_8.h5')
@@ -96,12 +94,12 @@ def start_prediction(filename):
         report_id = re.sub(r"\.\w*","",filename) + '-' + str(datetime.today().strftime('%Y-%m-%d-%H:%M:%S'))
         img = predict(filename)
         audio_url = 'https://storage.googleapis.com/psycomfy-c22-ps203-capstone/' + filename
-        pred = {'status_user' : img[0], "audio_url": audio_url ,"status_running" : "Success", "level" : img[1]}, 201
+        pred = {'status_user' : img[0], "audio_url": audio_url , "level" : img[1]}, 201
         if write("""INSERT INTO reports (report_id, audio_url, result) VALUES (%s, %s, %s)""", (report_id, audio_url, img[0] + ' ' + img[1] )):
             return pred
-        return 'db error'
+        return {'error' : True, 'message' : 'Error processing file'}, 400
     except:
-        pred = {'status_user' : '-', 'status_running' : "Error"}, 400
+        pred = {'error': True,'status_user' : '-'}, 400
     return pred
 
 @pred.route("/report/<doc_id>", methods=['GET'])
@@ -113,7 +111,7 @@ def report_card(doc_id):
         """SELECT * FROM reports WHERE report_id=%s"""
         ,(choosen_id,)
     )
-        return jsonify(data[0]), 200
+        return {'error' : False,'data':data[0]}, 200
     except Exception as e:
-        return f"an error occur {e}"
+        return {'error' : True, "message" : f"an error occur {e}"}, 400
 

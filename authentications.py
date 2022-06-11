@@ -25,11 +25,11 @@ def add_user():
         if write("""
         INSERT INTO users (public_id, email, password) VALUES (%s, %s, %s)
     """, (public_id, email, hashed_pass,)):
-            return jsonify({'message':'New user added successfully !'})
+            return {'error' : False ,'message':'New user added successfully !'}, 200
         else:
-            return jsonify('fail') , 401
+            return {'error' : True, 'message' : 'Cant add user'}, 400
     else:
-        return jsonify('400')    
+        return {'error' : True, 'message' : 'User and password invalid'}, 400   
 
 @auth.route("/signin", methods=['POST'])
 def login():
@@ -45,7 +45,7 @@ def login():
     if check_password_hash(current_user[0]['password'], current_pass):
 
         token = jwt.encode({'public_id':current_user[0]['public_id']}, SECRET_KEY, "HS256")
-        return jsonify({'error' : False, 'message' : 'success','user':{'public_id' : current_user[0]['public_id'], 'email' : current_user[0]['email'], 'token' : token}})
-    return jsonify({'error' : True, 'message': 'user invalid'})
+        return {'error' : False, 'message' : 'success','user':{'public_id' : current_user[0]['public_id'], 'email' : current_user[0]['email'], 'token' : token}}, 200
+    return {'error' : True, 'message': 'user invalid'}, 400
 
 
