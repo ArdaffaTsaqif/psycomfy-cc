@@ -21,8 +21,6 @@ env: flex
 # https://cloud.google.com/appengine/docs/flexible/python/configuring-your-app-with-app-yaml
 
 # # Enable a Unix domain socket
-
-
 env_variables:
   INSTANCE_UNIX_SOCKET: /cloudsql/c22-ps203-capstone-352016:asia-southeast2:psycomfy-demo
   DB_USER: root

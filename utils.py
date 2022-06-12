@@ -15,11 +15,15 @@ def token_required(f):
        if not token:
            return jsonify({'message': 'a valid token is missing'})
        try:
-            jwt.decode(token, SECRET_KEY, algorithms=["HS256"])       
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            curr_user = read(
+                """SELECT * FROM users WHERE public_id=%s""",
+                (data['public_id'],)
+            )   
        except :
            return jsonify("error"), 401
  
-       return f(*args, **kwargs)
+       return f(curr_user,*args, **kwargs)
    return decorator
 
 

@@ -32,10 +32,10 @@ def download_file(filename):
 # /uploads endpoint upload audio file to GCS
 @pred.route('/api/uploads', methods=['POST'])
 @token_required
-def upload_file():
+def upload_file(curr_user):
     if request.files:
         file = request.files['file']
-        filename = secure_filename(file.filename)
+        filename = secure_filename(curr_user[0]['public_id'] + file.filename)
         file.save(os.path.join('/tmp/', filename))
 
         try:
@@ -91,7 +91,7 @@ def predict(filename):
 @pred.route('/<filename>', methods=['GET'])
 def start_prediction(filename):
     try:
-        report_id = re.sub(r"\.\w*","",filename) + '-' + str(datetime.today().strftime('%Y-%m-%d-%H:%M:%S'))
+        report_id = re.sub(r"\.\w*","",filename)
         img = predict(filename)
         audio_url = 'https://storage.googleapis.com/psycomfy-c22-ps203-capstone/' + filename
         pred = {'status_user' : img[0], "audio_url": audio_url , "level" : img[1]}, 201
@@ -115,3 +115,7 @@ def report_card(doc_id):
     except Exception as e:
         return {'error' : True, "message" : f"an error occur {e}"}, 400
 
+@pred.route('/test', methods=['GET'])
+@token_required
+def test(curr_user):
+    return {'user_id' : curr_user[0]['public_id']}
